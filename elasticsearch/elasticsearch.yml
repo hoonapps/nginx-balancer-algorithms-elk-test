@@ -1,0 +1,6 @@
+cluster.name: 'docker-cluster'
+network.host: 0.0.0.0
+
+# 보안 설정
+xpack.security.enabled: false
+xpack.security.http.ssl.enabled: false
