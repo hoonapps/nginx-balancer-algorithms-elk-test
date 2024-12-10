@@ -1,31 +1,37 @@
 #!/bin/bash
 
-url="http://localhost:8080/2" # Nginx 컨테이너의 URL
-total_requests=20
+url="http://localhost:8080/cpu-intensive" # Nginx Container URL
+concurrent_requests=(600 700 800 900) 
+total_requests=(1200 1400 1600 1800) 
+algorithm=LeastConnections # algorithm name (RoundRobin or LeastConnections)
 
-echo "Starting load test with $total_requests requests..."
-echo # 빈 줄 추가
+if [[ -z $algorithm ]]; then
+  echo "Usage: $0 <Algorithm>"
+  echo "Algorithm should be either 'RoundRobin' or 'LeastConnections'"
+  exit 1
+fi
 
-# 시작 시간 기록
-start_time=$(date +%s)
+echo "Starting load test for $algorithm algorithm..."
 
-for ((i = 1; i <= total_requests; i++)); do
-  delay=$(( ((i - 1) % 4 + 1) * 1000 )) # 순서대로 1초, 2초, 3초, 4초
-  echo "Sending request $i with delay ${delay}ms"
-  curl -X GET "${url}?requestId=${i}" &
-  sleep 0.5 # 0.5초 간격으로 요청
+# check start time
+overall_start_time=$(date +%s)
+
+# Step-by-Step Test
+for i in "${!concurrent_requests[@]}"; do
+  concurrent="${concurrent_requests[$i]}"
+  total="${total_requests[$i]}"
+
+  echo "Testing with $total total requests and $concurrent concurrent requests..."
+  
+  # Perform the test using Apache Benchmark
+  ab -n "$total" -c "$concurrent" "$url" > "results_${algorithm}_${total}_${concurrent}.txt"
+
+  echo "Completed test for $total requests and $concurrent concurrent requests."
 done
 
-echo # 빈 줄 추가
-wait # 모든 요청이 완료될 때까지 대기
+# check end time
+overall_end_time=$(date +%s)
+overall_elapsed_time=$((overall_end_time - overall_start_time))
 
-# 종료 시간 기록
-end_time=$(date +%s)
-
-# 총 소요 시간 계산
-elapsed_time=$((end_time - start_time))
-
-echo "Load test completed!"
-echo # 빈 줄 추가
-echo "Total time taken: ${elapsed_time} seconds"
-echo # 빈 줄 추가
+echo "Load test completed for $algorithm algorithm!"
+echo "Total time taken: ${overall_elapsed_time} seconds"
