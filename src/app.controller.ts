@@ -17,6 +17,6 @@ export class AppController {
     // 처리 시간만큼 연결 유지
     await new Promise((resolve) => setTimeout(resolve, delay));
 
-    return `Processed by ${process.env.APP_NAME || 'API Server'} in ${delay} ms`;
+    return `Processed by ${process.env.APP_NAME || 'API Server'} in ${delay} ms\n`;
   }
 }
